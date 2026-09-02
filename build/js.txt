@@ -59,10 +59,10 @@ window.copyResultText = function(btn){
     var splash = document.getElementById('stageSplash');
     var isTitle=label==='TITLE';
     splash.innerHTML=isTitle
-      ? '<div class="drop-title"><strong>SHE SURVIVED!</strong><b>NOW NAME HER.</b><small>FAMILY RECLASSIFICATION UNIT // CASE 001</small></div>'
+      ? '<div class="survival-stage"><div class="tiny-mum"><i class="mum-hair"></i><i class="mum-face">•‿•</i><i class="mum-body"></i><i class="mum-leg"></i><span class="mum-flag"><i></i></span></div><div class="title-slab">SHE SURVIVED!</div><b class="now-name">NOW NAME HER.</b><small>FAMILY RECLASSIFICATION UNIT // CASE 001</small></div>'
       : '<div class="round-title">'+label+'</div>';
     splash.className=isTitle?'show title-drop':'show round-drop';
-    window.setTimeout(function(){ splash.className = ''; },isTitle?3600:2100);
+    window.setTimeout(function(){ splash.className = ''; },isTitle?5600:2100);
   }
 
   function addCaseCore(passage,stage){
