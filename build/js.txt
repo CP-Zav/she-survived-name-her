@@ -1,0 +1,22 @@
+window.copyResultText = function(btn){
+  try{
+    var box = btn.parentElement.querySelector('.resultbox');
+    if(!box){ return; }
+    box.focus();
+    box.select();
+    box.setSelectionRange(0, 999999);
+    var ok = false;
+    try{ ok = document.execCommand('copy'); }catch(e){ ok = false; }
+    if(!ok && navigator.clipboard && navigator.clipboard.writeText){
+      navigator.clipboard.writeText(box.value).then(function(){
+        btn.textContent = 'COPIED. GO FORTH.';
+      })['catch'](function(){
+        btn.textContent = 'COULDN\'T COPY - SELECT IT MANUALLY';
+      });
+      return;
+    }
+    btn.textContent = ok ? 'COPIED. GO FORTH.' : 'COULDN\'T COPY - SELECT IT MANUALLY';
+  }catch(err){
+    btn.textContent = 'COULDN\'T COPY - SELECT IT MANUALLY';
+  }
+};
