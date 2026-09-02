@@ -1,0 +1,46 @@
+name: Rebuild Twine export
+
+on:
+  push:
+    branches:
+      - claude/twine-name-her-complete-ryhm5p
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  rebuild:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout branch
+        uses: actions/checkout@v4
+        with:
+          ref: claude/twine-name-her-complete-ryhm5p
+          fetch-depth: 0
+
+      - name: Rebuild playable Twine HTML
+        run: |
+          sudo mkdir -p /home/user
+          sudo ln -sfn "$GITHUB_WORKSPACE" /home/user/she-survived-name-her
+          python3 build/build.py
+          cp 'She Survived - Now Name Her.html' index.html
+
+      - name: Verify Harlowe runtime survived rebuild
+        run: |
+          grep -q 'title="Twine engine code"' 'She Survived - Now Name Her.html'
+          grep -q 'data-main="harlowe"' 'She Survived - Now Name Her.html'
+          grep -q 'title="Twine engine code"' index.html
+          grep -q '<tw-storydata' index.html
+
+      - name: Commit regenerated export if changed
+        run: |
+          if git diff --quiet -- 'She Survived - Now Name Her.html' index.html; then
+            echo "Export already current."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add 'She Survived - Now Name Her.html' index.html
+          git commit -m 'Serve playable Twine export directly at Pages root'
+          git push origin HEAD:claude/twine-name-her-complete-ryhm5p

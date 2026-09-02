@@ -1,0 +1,9 @@
+{
+  "cleanUrls": true,
+  "rewrites": [
+    {
+      "source": "/",
+      "destination": "/She%20Survived%20-%20Now%20Name%20Her.html"
+    }
+  ]
+}
