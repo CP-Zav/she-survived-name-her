@@ -3,14 +3,15 @@
 """Assembles the repaired/completed "She Survived: Now Name Her." Twine HTML."""
 import html
 import re
+from pathlib import Path
 
-ROOT = "/home/user/she-survived-name-her"
-SRC = f"{ROOT}/source/original.html"
-OUT = f"{ROOT}/She Survived - Now Name Her.html"
+ROOT = Path(__file__).resolve().parent.parent
+SRC = ROOT / "source" / "original.html"
+OUT = ROOT / "She Survived - Now Name Her.html"
 
-with open(f"{ROOT}/build/css.txt", encoding="utf-8") as f:
+with open(ROOT / "build" / "css.txt", encoding="utf-8") as f:
     CSS = f.read()
-with open(f"{ROOT}/build/js.txt", encoding="utf-8") as f:
+with open(ROOT / "build" / "js.txt", encoding="utf-8") as f:
     JS = f.read()
 
 # ---------------------------------------------------------------------------
