@@ -20,3 +20,129 @@ window.copyResultText = function(btn){
     btn.textContent = 'COULDN\'T COPY - SELECT IT MANUALLY';
   }
 };
+
+(function(){
+  var lastPassage = null;
+  var lastStage = '';
+  var celebrated = false;
+
+  function ensureChrome(){
+    if(!document.getElementById('gameHud')){
+      var hud = document.createElement('div');
+      hud.id = 'gameHud';
+      hud.innerHTML = '<div class="hud-top"><span id="hudStage">THE FAMILY FILE</span><span id="hudCount">START</span></div><div class="hud-track"><i id="hudFill"></i></div>';
+      document.body.appendChild(hud);
+    }
+    if(!document.getElementById('stageSplash')){
+      var splash = document.createElement('div');
+      splash.id = 'stageSplash';
+      document.body.appendChild(splash);
+    }
+  }
+
+  function stageFor(passage){
+    var text = passage.innerText || '';
+    if(passage.querySelector('.stage-result')) return {name:'THE VERDICT',count:'WINNER',progress:100,splash:'🏆 FINAL VERDICT'};
+    if(passage.querySelector('.stage-finalvote')) return {name:'FINAL VOTE',count:'ROUND 4',progress:92,splash:'⚡ FINAL VOTE'};
+    if(passage.querySelector('.stage-knockout')) return {name:'NAME KNOCKOUT',count:'ROUND 3',progress:76,splash:'🥊 NAME KNOCKOUT'};
+    if(passage.querySelector('.stage-namepit') || /NAME PIT/.test(text)) return {name:'THE NAME PIT',count:'ROUND 2',progress:58,splash:'💀 ENTER THE NAME PIT'};
+    var m = text.match(/QUESTION\s+(\d+)/i);
+    if(m){
+      var q = Math.min(parseInt(m[1],10),17);
+      return {name:q < 8 ? 'VIBE CHECK' : 'THE DEEP FILE',count:'Q '+q+' / 17',progress:8+(q/17)*44,splash:q===1?'🔍 ROUND 1: MUM UNDER INVESTIGATION':(q===8?'🗃️ ROUND 2: THE DEEP FILE':'')};
+    }
+    return {name:'THE FAMILY FILE',count:'START',progress:3,splash:'🎮 SHE SURVIVED. NOW NAME HER.'};
+  }
+
+  function showSplash(label){
+    if(!label) return;
+    var splash = document.getElementById('stageSplash');
+    splash.textContent = label;
+    splash.className = 'show';
+    window.setTimeout(function(){ splash.className = ''; },1350);
+  }
+
+  function paceLongScene(passage){
+    if(passage.dataset.paced) return;
+    passage.dataset.paced = '1';
+    if(passage.querySelector('.stage-result')) return;
+    var paras = Array.prototype.filter.call(passage.children,function(n){return n.tagName==='P' && !n.querySelector('tw-link');});
+    var links = passage.querySelectorAll('tw-link');
+    if(paras.length < 7 || links.length > 2) return;
+    var shown = 3;
+    paras.forEach(function(p,i){ if(i>=shown) p.classList.add('beat-hidden'); });
+    if(shown>=paras.length) return;
+    links.forEach(function(l){l.classList.add('choice-locked');});
+    var next = document.createElement('button');
+    next.className = 'beat-next';
+    next.textContent = 'NEXT  ›';
+    passage.appendChild(next);
+    next.addEventListener('click',function(){
+      var stop = Math.min(shown+3,paras.length);
+      for(var i=shown;i<stop;i++) paras[i].classList.remove('beat-hidden');
+      shown=stop;
+      if(navigator.vibrate) navigator.vibrate(18);
+      if(shown>=paras.length){
+        next.remove();
+        links.forEach(function(l){l.classList.remove('choice-locked');});
+      }else{
+        next.scrollIntoView({behavior:'smooth',block:'end'});
+      }
+    });
+  }
+
+  function sparks(x,y){
+    var icons=['✦','⚡','★','✧','💥'];
+    for(var i=0;i<7;i++){
+      var s=document.createElement('b');
+      s.className='choice-spark';
+      s.textContent=icons[i%icons.length];
+      s.style.left=x+'px';s.style.top=y+'px';
+      s.style.setProperty('--dx',((Math.random()-.5)*130)+'px');
+      s.style.setProperty('--dy',(-30-Math.random()*100)+'px');
+      document.body.appendChild(s);
+      window.setTimeout((function(el){return function(){el.remove();};})(s),700);
+    }
+  }
+
+  function confetti(){
+    if(celebrated) return; celebrated=true;
+    for(var i=0;i<55;i++){
+      var c=document.createElement('i');c.className='confetti';
+      c.style.left=(Math.random()*100)+'vw';
+      c.style.background=['#ff2fb0','#2fe6ff','#ffd93d','#5cf29a','#8b5cf6'][i%5];
+      c.style.animationDelay=(Math.random()*.8)+'s';
+      c.style.animationDuration=(1.8+Math.random()*1.8)+'s';
+      document.body.appendChild(c);
+      window.setTimeout((function(el){return function(){el.remove();};})(c),4200);
+    }
+  }
+
+  function enhance(){
+    var passage=document.querySelector('tw-passage');
+    if(!passage || passage===lastPassage) return;
+    lastPassage=passage;
+    ensureChrome();
+    var stage=stageFor(passage);
+    document.getElementById('hudStage').textContent=stage.name;
+    document.getElementById('hudCount').textContent=stage.count;
+    document.getElementById('hudFill').style.width=stage.progress+'%';
+    if(stage.name!==lastStage){showSplash(stage.splash);lastStage=stage.name;}
+    paceLongScene(passage);
+    if(stage.progress===100) confetti();
+    window.scrollTo({top:0,behavior:'smooth'});
+  }
+
+  document.addEventListener('click',function(e){
+    var link=e.target.closest && e.target.closest('tw-link');
+    if(!link || link.classList.contains('choice-locked')) return;
+    link.classList.add('choice-hit');
+    var r=link.getBoundingClientRect();sparks(r.left+r.width/2,r.top+r.height/2);
+    document.body.classList.add('screen-hit');
+    if(navigator.vibrate) navigator.vibrate([20,25,35]);
+    window.setTimeout(function(){document.body.classList.remove('screen-hit');},230);
+  },true);
+
+  new MutationObserver(function(){window.requestAnimationFrame(enhance);}).observe(document.documentElement,{childList:true,subtree:true});
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',enhance); else enhance();
+})();
