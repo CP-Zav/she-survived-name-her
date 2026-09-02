@@ -131,6 +131,10 @@ window.copyResultText = function(btn){
   function enhance(){
     var passage=document.querySelector('tw-passage');
     if(!passage || passage===lastPassage) return;
+    /* Harlowe creates the passage shell before it finishes rendering its
+       contents. Never decorate that empty shell or the story can stop at the
+       case card with no way forward. Every completed game passage has a link. */
+    if(!passage.querySelector('tw-link')) return;
     lastPassage=passage;
     ensureChrome();
     var stage=stageFor(passage);
