@@ -38,6 +38,17 @@ window.copyResultText = function(btn){
       splash.id = 'stageSplash';
       document.body.appendChild(splash);
     }
+    if(!document.getElementById('scrollCue')){
+      var cue = document.createElement('button');
+      cue.id = 'scrollCue';
+      cue.innerHTML = '<span>↓</span><small>ENTER THE FILE</small>';
+      cue.addEventListener('click',function(){
+        var firstLink=document.querySelector('tw-passage tw-link');
+        if(firstLink) firstLink.scrollIntoView({behavior:'smooth',block:'center'});
+        cue.classList.remove('show');
+      });
+      document.body.appendChild(cue);
+    }
   }
 
   function stageFor(passage){
@@ -62,7 +73,13 @@ window.copyResultText = function(btn){
       ? '<div class="survival-stage"><div class="tiny-mum"><i class="mum-hair"></i><i class="mum-face">•‿•</i><i class="mum-body"></i><i class="mum-leg"></i><span class="mum-flag"><i></i></span></div><div class="title-slab">SHE SURVIVED!</div><b class="now-name">NOW NAME HER.</b><small>FAMILY RECLASSIFICATION UNIT // CASE 001</small></div>'
       : '<div class="round-title">'+label+'</div>';
     splash.className=isTitle?'show title-drop':'show round-drop';
-    window.setTimeout(function(){ splash.className = ''; },isTitle?5600:2100);
+    window.setTimeout(function(){
+      splash.className = '';
+      if(isTitle){
+        var cue=document.getElementById('scrollCue');
+        if(cue) cue.classList.add('show');
+      }
+    },isTitle?6800:2100);
   }
 
   function addCaseCore(passage,stage){
