@@ -42,24 +42,34 @@ window.copyResultText = function(btn){
 
   function stageFor(passage){
     var text = passage.innerText || '';
-    if(passage.querySelector('.stage-result')) return {name:'THE VERDICT',count:'WINNER',progress:100,splash:'🏆 FINAL VERDICT'};
-    if(passage.querySelector('.stage-finalvote')) return {name:'FINAL VOTE',count:'ROUND 4',progress:92,splash:'⚡ FINAL VOTE'};
-    if(passage.querySelector('.stage-knockout')) return {name:'NAME KNOCKOUT',count:'ROUND 3',progress:76,splash:'🥊 NAME KNOCKOUT'};
-    if(passage.querySelector('.stage-namepit') || /NAME PIT/.test(text)) return {name:'THE NAME PIT',count:'ROUND 2',progress:58,splash:'💀 ENTER THE NAME PIT'};
+    if(passage.querySelector('.stage-result')) return {name:'THE VERDICT',count:'WINNER',progress:100,status:'SUBJECT RECLASSIFIED',splash:'🏆 FINAL VERDICT'};
+    if(passage.querySelector('.stage-finalvote')) return {name:'FINAL VOTE',count:'ROUND 4',progress:92,status:'FINAL RULING PENDING',splash:'⚡ FINAL VOTE'};
+    if(passage.querySelector('.stage-knockout')) return {name:'NAME KNOCKOUT',count:'ROUND 3',progress:76,status:'CANDIDATES BEING ELIMINATED',splash:'🥊 NAME KNOCKOUT'};
+    if(passage.querySelector('.stage-namepit') || /NAME PIT/.test(text)) return {name:'THE NAME PIT',count:'ROUND 2',progress:58,status:'NAMES UNDER EXTREME REVIEW',splash:'💀 ENTER THE NAME PIT'};
     var m = text.match(/QUESTION\s+(\d+)/i);
     if(m){
       var q = Math.min(parseInt(m[1],10),17);
-      return {name:q < 8 ? 'VIBE CHECK' : 'THE DEEP FILE',count:'Q '+q+' / 17',progress:8+(q/17)*44,splash:q===1?'🔍 ROUND 1: MUM UNDER INVESTIGATION':(q===8?'🗃️ ROUND 2: THE DEEP FILE':'')};
+      return {name:q < 8 ? 'VIBE CHECK' : 'THE DEEP FILE',count:'Q '+q+' / 17',progress:8+(q/17)*44,status:'SUBJECT UNDER INVESTIGATION',splash:q===1?'🔍 ROUND 1: MUM UNDER INVESTIGATION':(q===8?'🗃️ ROUND 2: THE DEEP FILE':'')};
     }
-    return {name:'THE FAMILY FILE',count:'START',progress:3,splash:'🎮 SHE SURVIVED. NOW NAME HER.'};
+    return {name:'THE FAMILY FILE',count:'CASE 001',progress:3,status:'IDENTITY: UNRESOLVED',splash:'TITLE'};
   }
 
   function showSplash(label){
     if(!label) return;
     var splash = document.getElementById('stageSplash');
-    splash.textContent = label;
-    splash.className = 'show';
-    window.setTimeout(function(){ splash.className = ''; },1350);
+    var isTitle=label==='TITLE';
+    splash.innerHTML=isTitle
+      ? '<div class="drop-title"><strong>SHE SURVIVED!</strong><b>NOW NAME HER.</b><small>FAMILY RECLASSIFICATION UNIT // CASE 001</small></div>'
+      : '<div class="round-title">'+label+'</div>';
+    splash.className=isTitle?'show title-drop':'show round-drop';
+    window.setTimeout(function(){ splash.className = ''; },isTitle?3600:2100);
+  }
+
+  function addCaseCore(passage,stage){
+    var core=document.createElement('div');
+    core.className='case-core'+(stage.count==='CASE 001'?' opening-core':'');
+    core.innerHTML='<small>FAMILY RECLASSIFICATION UNIT</small><div class="case-mark"><span>CASE</span><b>MUM</b></div><em>'+stage.status+'</em><i>FILE FRU-001 // AUTHORITY: QUESTIONABLE</i>';
+    passage.insertBefore(core,passage.firstChild);
   }
 
   function paceLongScene(passage){
@@ -128,6 +138,7 @@ window.copyResultText = function(btn){
     document.getElementById('hudCount').textContent=stage.count;
     document.getElementById('hudFill').style.width=stage.progress+'%';
     if(stage.name!==lastStage){showSplash(stage.splash);lastStage=stage.name;}
+    addCaseCore(passage,stage);
     paceLongScene(passage);
     if(stage.progress===100) confetti();
     window.scrollTo({top:0,behavior:'smooth'});
