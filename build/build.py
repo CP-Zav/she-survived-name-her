@@ -391,6 +391,8 @@ Checking whether "feral" is a recognised personality type...
 
 Ignoring several red flags...
 
+<span data-anim="shock" style="display:none"></span>
+
 (if: $Earth >= 5 and $Fire >= 4)[ (set: $MumArchetype to "ROOTED MENACE")
 
 ROOTED MENACE 🌿🔥
@@ -791,7 +793,7 @@ Gut reaction. No committee meeting.
 
 (link: "🔥 OH SHIT… THIS COULD BE HER")[ (set: $LoveNames to $LoveNames + (a: "Zaira Maree Rivers")) (go-to: "RheaKristalSinclair") ]
 
-(link: "👀 I'M LISTENING…")[ (set: $MaybeNames to $MaybeNames + (a: "Zaira Maree Rivers")) (go-to: "RheaKristalSinclair") ]
+(link: "👀 I'M LISTENING…")[ (set: $MaybeNames to $MaybeNames + (a: "Zaira Maree Rivers")) <span data-anim="stumble" style="display:none"></span> (go-to: "RheaKristalSinclair") ]
 
 (link: "🪦 BURY IT WITH DIGNITY")[ (set: $NopeNames to $NopeNames + (a: "Zaira Maree Rivers")) (go-to: "RheaKristalSinclair") ]
 
@@ -817,7 +819,7 @@ Looks like she chairs the meeting. Also looks like she caused the meeting.
 
 (link: "👑 OKAY, QUEEN")[ (set: $LoveNames to $LoveNames + (a: "Rhea Kristal Sinclair")) (go-to: "ZoraKristalForest") ]
 
-(link: "🤏 CLOSE, BUT NOT QUITE")[ (set: $MaybeNames to $MaybeNames + (a: "Rhea Kristal Sinclair")) (go-to: "ZoraKristalForest") ]
+(link: "🤏 CLOSE, BUT NOT QUITE")[ (set: $MaybeNames to $MaybeNames + (a: "Rhea Kristal Sinclair")) <span data-anim="stumble" style="display:none"></span> (go-to: "ZoraKristalForest") ]
 
 (link: "🚫 DEMOTED IMMEDIATELY")[ (set: $NopeNames to $NopeNames + (a: "Rhea Kristal Sinclair")) (go-to: "ZoraKristalForest") ]
 
@@ -843,7 +845,7 @@ Immediate verdict:
 
 (link: "⚡ WAIT… WHY DOES THIS ACTUALLY WORK?")[ (set: $LoveNames to $LoveNames + (a: "Zora Kristal Forest")) (go-to: "MarloweRaeQuinn") ]
 
-(link: "🧐 DON'T HATE IT. SUSPICIOUS.")[ (set: $MaybeNames to $MaybeNames + (a: "Zora Kristal Forest")) (go-to: "MarloweRaeQuinn") ]
+(link: "🧐 DON'T HATE IT. SUSPICIOUS.")[ (set: $MaybeNames to $MaybeNames + (a: "Zora Kristal Forest")) <span data-anim="stumble" style="display:none"></span> (go-to: "MarloweRaeQuinn") ]
 
 (link: "🌲 RETURN IT TO THE FOREST")[ (set: $NopeNames to $NopeNames + (a: "Zora Kristal Forest")) (go-to: "MarloweRaeQuinn") ]
 
@@ -869,7 +871,7 @@ Sounds like someone who'd solve the case and leave without explaining how.
 
 (link: "🕶️ SHE'S GOT A WHOLE BACKSTORY NOW")[ (set: $LoveNames to $LoveNames + (a: "Marlowe Rae Quinn")) (go-to: "ZariaRaeSterling") ]
 
-(link: "🤷 COULD GO EITHER WAY")[ (set: $MaybeNames to $MaybeNames + (a: "Marlowe Rae Quinn")) (go-to: "ZariaRaeSterling") ]
+(link: "🤷 COULD GO EITHER WAY")[ (set: $MaybeNames to $MaybeNames + (a: "Marlowe Rae Quinn")) <span data-anim="stumble" style="display:none"></span> (go-to: "ZariaRaeSterling") ]
 
 (link: "📁 CASE CLOSED. REJECTED.")[ (set: $NopeNames to $NopeNames + (a: "Marlowe Rae Quinn")) (go-to: "ZariaRaeSterling") ]
 
@@ -895,7 +897,7 @@ First instinct only:
 
 (link: "✨ OKAY… SHE'S GOT SOMETHING")[ (set: $LoveNames to $LoveNames + (a: "Zaria Rae Sterling")) (go-to: "NadiaRaeWinter") ]
 
-(link: "👀 NOT SOLD, BUT DON'T KILL HER YET")[ (set: $MaybeNames to $MaybeNames + (a: "Zaria Rae Sterling")) (go-to: "NadiaRaeWinter") ]
+(link: "👀 NOT SOLD, BUT DON'T KILL HER YET")[ (set: $MaybeNames to $MaybeNames + (a: "Zaria Rae Sterling")) <span data-anim="stumble" style="display:none"></span> (go-to: "NadiaRaeWinter") ]
 
 (link: "🪓 CUT HER FROM THE LINE-UP")[ (set: $NopeNames to $NopeNames + (a: "Zaria Rae Sterling")) (go-to: "NadiaRaeWinter") ]
 
@@ -921,7 +923,7 @@ Elegant. Also fully capable of shutting a room down with one look.
 
 (link: "❄️ SHE COULD ACTUALLY PULL THIS OFF")[ (set: $LoveNames to $LoveNames + (a: "Nadia Rae Winter")) (go-to: "ZeliaRaeMorrow") ]
 
-(link: "🤔 UNDECIDED. ASK AGAIN LATER.")[ (set: $MaybeNames to $MaybeNames + (a: "Nadia Rae Winter")) (go-to: "ZeliaRaeMorrow") ]
+(link: "🤔 UNDECIDED. ASK AGAIN LATER.")[ (set: $MaybeNames to $MaybeNames + (a: "Nadia Rae Winter")) <span data-anim="stumble" style="display:none"></span> (go-to: "ZeliaRaeMorrow") ]
 
 (link: "🥶 COLD. NEXT.")[ (set: $NopeNames to $NopeNames + (a: "Nadia Rae Winter")) (go-to: "ZeliaRaeMorrow") ]
 
@@ -947,7 +949,7 @@ Gut check:
 
 (link: "⚡ OHHH… HOLD UP")[ (set: $LoveNames to $LoveNames + (a: "Zelia Rae Morrow")) (go-to: "VesperKristalWilde") ]
 
-(link: "👀 KEEP HER AROUND")[ (set: $MaybeNames to $MaybeNames + (a: "Zelia Rae Morrow")) (go-to: "VesperKristalWilde") ]
+(link: "👀 KEEP HER AROUND")[ (set: $MaybeNames to $MaybeNames + (a: "Zelia Rae Morrow")) <span data-anim="stumble" style="display:none"></span> (go-to: "VesperKristalWilde") ]
 
 (link: "🪦 NOT DEADLY, JUST NOT HER")[ (set: $NopeNames to $NopeNames + (a: "Zelia Rae Morrow")) (go-to: "VesperKristalWilde") ]
 
@@ -973,7 +975,7 @@ Sounds like a woman who arrives fashionably late and never apologises for it.
 
 (link: "🌆 OKAY THAT'S ACTUALLY KIND OF ICONIC")[ (set: $LoveNames to $LoveNames + (a: "Vesper Kristal Wilde")) (go-to: "KaiaRaeMorrow") ]
 
-(link: "🧐 SUSPICIOUSLY GOOD. WATCHING CLOSELY.")[ (set: $MaybeNames to $MaybeNames + (a: "Vesper Kristal Wilde")) (go-to: "KaiaRaeMorrow") ]
+(link: "🧐 SUSPICIOUSLY GOOD. WATCHING CLOSELY.")[ (set: $MaybeNames to $MaybeNames + (a: "Vesper Kristal Wilde")) <span data-anim="stumble" style="display:none"></span> (go-to: "KaiaRaeMorrow") ]
 
 (link: "🌫️ FADE TO BLACK ON THIS ONE")[ (set: $NopeNames to $NopeNames + (a: "Vesper Kristal Wilde")) (go-to: "KaiaRaeMorrow") ]
 
@@ -999,7 +1001,7 @@ Immediate reaction:
 
 (link: "🔥 FUCK… SHE MIGHT ACTUALLY BE SOMETHING")[ (set: $LoveNames to $LoveNames + (a: "Kaia Rae Morrow")) (go-to: "TheaRaeOsmond") ]
 
-(link: "👀 ALRIGHT KAIA, DON'T GET COMFORTABLE")[ (set: $MaybeNames to $MaybeNames + (a: "Kaia Rae Morrow")) (go-to: "TheaRaeOsmond") ]
+(link: "👀 ALRIGHT KAIA, DON'T GET COMFORTABLE")[ (set: $MaybeNames to $MaybeNames + (a: "Kaia Rae Morrow")) <span data-anim="stumble" style="display:none"></span> (go-to: "TheaRaeOsmond") ]
 
 (link: "🫠 I SEE IT. I JUST DON'T WANT IT.")[ (set: $NopeNames to $NopeNames + (a: "Kaia Rae Morrow")) (go-to: "TheaRaeOsmond") ]
 
@@ -1025,7 +1027,7 @@ Sounds respectable right up until you find out what she's actually been doing.
 
 (link: "💡 OH THAT'S ANNOYINGLY GOOD")[ (set: $LoveNames to $LoveNames + (a: "Thea Rae Osmond")) (go-to: "JunoKristalHale") ]
 
-(link: "🤨 SUSPICIOUS LEVELS OF FINE")[ (set: $MaybeNames to $MaybeNames + (a: "Thea Rae Osmond")) (go-to: "JunoKristalHale") ]
+(link: "🤨 SUSPICIOUS LEVELS OF FINE")[ (set: $MaybeNames to $MaybeNames + (a: "Thea Rae Osmond")) <span data-anim="stumble" style="display:none"></span> (go-to: "JunoKristalHale") ]
 
 (link: "🕯️ LIGHTS OUT ON THIS ONE")[ (set: $NopeNames to $NopeNames + (a: "Thea Rae Osmond")) (go-to: "JunoKristalHale") ]
 
@@ -1051,7 +1053,7 @@ The kind of name that ends arguments just by entering the room.
 
 (link: "👑 SHE WOULD RULE, HONESTLY")[ (set: $LoveNames to $LoveNames + (a: "Juno Kristal Hale")) (go-to: "RomyMareeCalder") ]
 
-(link: "🤷 JURY'S STILL OUT")[ (set: $MaybeNames to $MaybeNames + (a: "Juno Kristal Hale")) (go-to: "RomyMareeCalder") ]
+(link: "🤷 JURY'S STILL OUT")[ (set: $MaybeNames to $MaybeNames + (a: "Juno Kristal Hale")) <span data-anim="stumble" style="display:none"></span> (go-to: "RomyMareeCalder") ]
 
 (link: "⚰️ OVERTHROWN. NEXT.")[ (set: $NopeNames to $NopeNames + (a: "Juno Kristal Hale")) (go-to: "RomyMareeCalder") ]
 
@@ -1077,7 +1079,7 @@ Sounds soft. Is absolutely not soft.
 
 (link: "🥹 OKAY WAIT I ACTUALLY LOVE THIS")[ (set: $LoveNames to $LoveNames + (a: "Romy Maree Calder")) (go-to: "CasualtyReport") ]
 
-(link: "🧐 GROWING ON ME, SUSPICIOUSLY")[ (set: $MaybeNames to $MaybeNames + (a: "Romy Maree Calder")) (go-to: "CasualtyReport") ]
+(link: "🧐 GROWING ON ME, SUSPICIOUSLY")[ (set: $MaybeNames to $MaybeNames + (a: "Romy Maree Calder")) <span data-anim="stumble" style="display:none"></span> (go-to: "CasualtyReport") ]
 
 (link: "👋 THANKS, NEXT")[ (set: $NopeNames to $NopeNames + (a: "Romy Maree Calder")) (go-to: "CasualtyReport") ]
 
@@ -1176,6 +1178,7 @@ add("HeadToHead", "knockout", """
 <div class="card">**(print: _second)**<br><span class="pron">(print: _secondInfo's pron)</span></div>
 
 (link: "👉 KEEP " + _first)[
+<span data-anim="dodge" style="display:none"></span>
 (set: $NextRoundResults to $NextRoundResults + (a: _first))
 (if: $Bracket's length > 2)[(set: $Bracket to (subarray: $Bracket, 3, $Bracket's length))](else:)[(set: $Bracket to (a:))]
 (if: $Bracket's length is 1)[(set: $NextRoundResults to $NextRoundResults + (a: $Bracket's 1st))(set: $Bracket to (a:))]
@@ -1183,6 +1186,7 @@ add("HeadToHead", "knockout", """
 ]
 
 (link: "👉 KEEP " + _second)[
+<span data-anim="dodge" style="display:none"></span>
 (set: $NextRoundResults to $NextRoundResults + (a: _second))
 (if: $Bracket's length > 2)[(set: $Bracket to (subarray: $Bracket, 3, $Bracket's length))](else:)[(set: $Bracket to (a:))]
 (if: $Bracket's length is 1)[(set: $NextRoundResults to $NextRoundResults + (a: $Bracket's 1st))(set: $Bracket to (a:))]
@@ -1223,6 +1227,7 @@ add("RoundComplete", "knockout", """
 
 add("NobodySurvived", "knockout", """
 <div class="stage-knockout">
+<span data-anim="fail" style="display:none"></span>
 # NOBODY SURVIVED
 
 Every single name got a Nope or a WTF. Impressive work.
@@ -1365,6 +1370,7 @@ Steal one. Change one. Mash two together. Or ignore the lot because apparently y
 
 add("FinalThree", "finalvote", """
 <div class="stage-finalvote">
+<span data-anim="celebrate" style="display:none"></span>
 (if: $Finalists's length is 1)[(set: $FinalHeadline to "THE ONLY ONE LEFT STANDING")]
 (else-if: $Finalists's length is 2)[(set: $FinalHeadline to "THE FINAL TWO")]
 (else-if: $Finalists's length is 3)[(set: $FinalHeadline to "THE FINAL THREE")]
@@ -1464,6 +1470,7 @@ Optional. Roast, explanation, heartfelt essay, or "dunno, it just suits you" all
 
 add("Result", "result", """
 <div class="stage-result">
+<span data-anim="win" style="display:none"></span>
 (if: $ChildName is "Connor")[(set: $ResultHeading to "CONNOR'S FINAL RULING")]
 (else-if: $ChildName is "Grace")[(set: $ResultHeading to "GRACE'S VERDICT")]
 (else-if: $ChildName is "Hunter")[(set: $ResultHeading to "HUNTER HAS DECIDED")]

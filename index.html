@@ -491,7 +491,14 @@ tw-story{padding-top:62px;}
     document.getElementById('hudStage').textContent=stage.name;
     document.getElementById('hudCount').textContent=stage.count;
     document.getElementById('hudFill').style.width=stage.progress+'%';
-    if(stage.name!==lastStage){showSplash(stage.splash);lastStage=stage.name;}
+    if(stage.name!==lastStage){
+      showSplash(stage.splash);
+      if(window.AnimController){
+        if(!lastStage){ window.AnimController.play('intro'); }
+        else if(stage.name==='VIBE CHECK'){ window.AnimController.play('idle'); }
+      }
+      lastStage=stage.name;
+    }
     addCaseCore(passage,stage);
     paceLongScene(passage);
     if(stage.progress===100) confetti();
@@ -510,6 +517,118 @@ tw-story{padding-top:62px;}
 
   new MutationObserver(function(){window.requestAnimationFrame(enhance);}).observe(document.documentElement,{childList:true,subtree:true});
   if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',enhance); else enhance();
+})();
+
+/* ------------------------------------------------------------------ */
+/* Character animation controller                                     */
+/* Plays one of 8 short MP4 clips (assets/animations/*.mp4) at real   */
+/* gameplay beats. Passage authors (build/build.py) mark a beat by    */
+/* dropping <span data-anim="NAME" style="display:none"></span> into  */
+/* a passage's Harlowe source; this controller notices that marker    */
+/* land in the DOM (via MutationObserver, the same technique the HUD  */
+/* code above already relies on) and plays the matching clip. The     */
+/* intro/idle states are triggered directly from the stage-transition */
+/* logic above instead, since they are ambient/whole-phase states     */
+/* rather than single-beat reactions.                                 */
+/* ------------------------------------------------------------------ */
+(function(){
+  var CLIPS = {
+    intro: 'assets/animations/intro.mp4',
+    idle: 'assets/animations/idle.mp4',
+    dodge: 'assets/animations/dodge.mp4',
+    stumble: 'assets/animations/stumble.mp4',
+    shock: 'assets/animations/shock.mp4',
+    celebrate: 'assets/animations/celebrate.mp4',
+    fail: 'assets/animations/fail.mp4',
+    win: 'assets/animations/win.mp4'
+  };
+
+  var reduceMotion = false;
+  try{ reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches; }catch(e){}
+
+  var video = null;
+  var current = null;
+  var failed = {};
+
+  function ensureVideo(){
+    if(video) return video;
+    video = document.createElement('video');
+    video.id = 'charAnim';
+    video.muted = true;
+    video.playsInline = true;
+    video.setAttribute('playsinline','');
+    video.setAttribute('webkit-playsinline','');
+    video.style.cssText = 'position:fixed;right:max(10px,env(safe-area-inset-right));bottom:max(10px,env(safe-area-inset-bottom));width:min(34vw,150px);aspect-ratio:1/1;object-fit:cover;border-radius:16px;border:1px solid rgba(255,255,255,.2);box-shadow:0 10px 30px rgba(0,0,0,.45);pointer-events:none;z-index:60;opacity:0;transition:opacity .3s ease,transform .3s ease;transform:translateY(8px) scale(.96);background:#000;';
+    document.body.appendChild(video);
+    video.addEventListener('ended',function(){
+      if(current && current!=='idle'){ play('idle'); }
+    });
+    video.addEventListener('error',function(){
+      failed[current] = true;
+      hide();
+    });
+    return video;
+  }
+
+  function hide(){
+    if(video){ video.style.opacity='0'; video.style.transform='translateY(8px) scale(.96)'; }
+  }
+
+  function play(name, opts){
+    opts = opts || {};
+    if(!CLIPS[name]) return;
+    if(reduceMotion && name!=='win' && name!=='intro') return;
+    if(failed[name]) return;
+    if(current===name && !opts.restart) return;
+    var v = ensureVideo();
+    current = name;
+    var src = CLIPS[name];
+    if(v.getAttribute('data-clip')!==src){
+      v.setAttribute('data-clip',src);
+      v.src = src;
+    }else{
+      try{ v.currentTime = 0; }catch(e){}
+    }
+    v.loop = (name==='idle');
+    var p;
+    try{ p = v.play(); }catch(e){ p = null; }
+    if(p && p.then){
+      p.then(function(){ v.style.opacity='1'; v.style.transform='none'; }).catch(function(){ hide(); });
+    }else{
+      v.style.opacity='1'; v.style.transform='none';
+    }
+  }
+
+  window.AnimController = { play: play, stop: function(){ current=null; hide(); } };
+
+  function claim(node){
+    if(!node || node.nodeType!==1) return;
+    if(node.hasAttribute && node.hasAttribute('data-anim')){
+      play(node.getAttribute('data-anim'));
+      node.removeAttribute('data-anim');
+    }
+    if(node.querySelectorAll){
+      var found = node.querySelectorAll('[data-anim]');
+      for(var i=0;i<found.length;i++){
+        play(found[i].getAttribute('data-anim'));
+        found[i].removeAttribute('data-anim');
+      }
+    }
+  }
+
+  function bootAnim(){
+    var story = document.querySelector('tw-story') || document.body;
+    claim(story);
+    new MutationObserver(function(mutations){
+      for(var i=0;i<mutations.length;i++){
+        for(var j=0;j<mutations[i].addedNodes.length;j++){
+          claim(mutations[i].addedNodes[j]);
+        }
+      }
+    }).observe(story,{childList:true,subtree:true});
+  }
+
+  if(document.readyState==='loading'){ document.addEventListener('DOMContentLoaded',bootAnim); } else { bootAnim(); }
 })();
 </script><tw-passagedata pid="1" name="Start" tags="opening" position="100,100" size="100,100">(set: $Earth to 0)
 (set: $Fire to 0)
@@ -818,6 +937,8 @@ Consulting absolutely no qualified professionals...
 Checking whether &quot;feral&quot; is a recognised personality type...
 
 Ignoring several red flags...
+
+&lt;span data-anim=&quot;shock&quot; style=&quot;display:none&quot;&gt;&lt;/span&gt;
 
 (if: $Earth &gt;= 5 and $Fire &gt;= 4)[ (set: $MumArchetype to &quot;ROOTED MENACE&quot;)
 
@@ -1163,7 +1284,7 @@ Gut reaction. No committee meeting.
 
 (link: &quot;🔥 OH SHIT… THIS COULD BE HER&quot;)[ (set: $LoveNames to $LoveNames + (a: &quot;Zaira Maree Rivers&quot;)) (go-to: &quot;RheaKristalSinclair&quot;) ]
 
-(link: &quot;👀 I&#x27;M LISTENING…&quot;)[ (set: $MaybeNames to $MaybeNames + (a: &quot;Zaira Maree Rivers&quot;)) (go-to: &quot;RheaKristalSinclair&quot;) ]
+(link: &quot;👀 I&#x27;M LISTENING…&quot;)[ (set: $MaybeNames to $MaybeNames + (a: &quot;Zaira Maree Rivers&quot;)) &lt;span data-anim=&quot;stumble&quot; style=&quot;display:none&quot;&gt;&lt;/span&gt; (go-to: &quot;RheaKristalSinclair&quot;) ]
 
 (link: &quot;🪦 BURY IT WITH DIGNITY&quot;)[ (set: $NopeNames to $NopeNames + (a: &quot;Zaira Maree Rivers&quot;)) (go-to: &quot;RheaKristalSinclair&quot;) ]
 
@@ -1185,7 +1306,7 @@ Looks like she chairs the meeting. Also looks like she caused the meeting.
 
 (link: &quot;👑 OKAY, QUEEN&quot;)[ (set: $LoveNames to $LoveNames + (a: &quot;Rhea Kristal Sinclair&quot;)) (go-to: &quot;ZoraKristalForest&quot;) ]
 
-(link: &quot;🤏 CLOSE, BUT NOT QUITE&quot;)[ (set: $MaybeNames to $MaybeNames + (a: &quot;Rhea Kristal Sinclair&quot;)) (go-to: &quot;ZoraKristalForest&quot;) ]
+(link: &quot;🤏 CLOSE, BUT NOT QUITE&quot;)[ (set: $MaybeNames to $MaybeNames + (a: &quot;Rhea Kristal Sinclair&quot;)) &lt;span data-anim=&quot;stumble&quot; style=&quot;display:none&quot;&gt;&lt;/span&gt; (go-to: &quot;ZoraKristalForest&quot;) ]
 
 (link: &quot;🚫 DEMOTED IMMEDIATELY&quot;)[ (set: $NopeNames to $NopeNames + (a: &quot;Rhea Kristal Sinclair&quot;)) (go-to: &quot;ZoraKristalForest&quot;) ]
 
@@ -1207,7 +1328,7 @@ Immediate verdict:
 
 (link: &quot;⚡ WAIT… WHY DOES THIS ACTUALLY WORK?&quot;)[ (set: $LoveNames to $LoveNames + (a: &quot;Zora Kristal Forest&quot;)) (go-to: &quot;MarloweRaeQuinn&quot;) ]
 
-(link: &quot;🧐 DON&#x27;T HATE IT. SUSPICIOUS.&quot;)[ (set: $MaybeNames to $MaybeNames + (a: &quot;Zora Kristal Forest&quot;)) (go-to: &quot;MarloweRaeQuinn&quot;) ]
+(link: &quot;🧐 DON&#x27;T HATE IT. SUSPICIOUS.&quot;)[ (set: $MaybeNames to $MaybeNames + (a: &quot;Zora Kristal Forest&quot;)) &lt;span data-anim=&quot;stumble&quot; style=&quot;display:none&quot;&gt;&lt;/span&gt; (go-to: &quot;MarloweRaeQuinn&quot;) ]
 
 (link: &quot;🌲 RETURN IT TO THE FOREST&quot;)[ (set: $NopeNames to $NopeNames + (a: &quot;Zora Kristal Forest&quot;)) (go-to: &quot;MarloweRaeQuinn&quot;) ]
 
@@ -1229,7 +1350,7 @@ Sounds like someone who&#x27;d solve the case and leave without explaining how.
 
 (link: &quot;🕶️ SHE&#x27;S GOT A WHOLE BACKSTORY NOW&quot;)[ (set: $LoveNames to $LoveNames + (a: &quot;Marlowe Rae Quinn&quot;)) (go-to: &quot;ZariaRaeSterling&quot;) ]
 
-(link: &quot;🤷 COULD GO EITHER WAY&quot;)[ (set: $MaybeNames to $MaybeNames + (a: &quot;Marlowe Rae Quinn&quot;)) (go-to: &quot;ZariaRaeSterling&quot;) ]
+(link: &quot;🤷 COULD GO EITHER WAY&quot;)[ (set: $MaybeNames to $MaybeNames + (a: &quot;Marlowe Rae Quinn&quot;)) &lt;span data-anim=&quot;stumble&quot; style=&quot;display:none&quot;&gt;&lt;/span&gt; (go-to: &quot;ZariaRaeSterling&quot;) ]
 
 (link: &quot;📁 CASE CLOSED. REJECTED.&quot;)[ (set: $NopeNames to $NopeNames + (a: &quot;Marlowe Rae Quinn&quot;)) (go-to: &quot;ZariaRaeSterling&quot;) ]
 
@@ -1251,7 +1372,7 @@ First instinct only:
 
 (link: &quot;✨ OKAY… SHE&#x27;S GOT SOMETHING&quot;)[ (set: $LoveNames to $LoveNames + (a: &quot;Zaria Rae Sterling&quot;)) (go-to: &quot;NadiaRaeWinter&quot;) ]
 
-(link: &quot;👀 NOT SOLD, BUT DON&#x27;T KILL HER YET&quot;)[ (set: $MaybeNames to $MaybeNames + (a: &quot;Zaria Rae Sterling&quot;)) (go-to: &quot;NadiaRaeWinter&quot;) ]
+(link: &quot;👀 NOT SOLD, BUT DON&#x27;T KILL HER YET&quot;)[ (set: $MaybeNames to $MaybeNames + (a: &quot;Zaria Rae Sterling&quot;)) &lt;span data-anim=&quot;stumble&quot; style=&quot;display:none&quot;&gt;&lt;/span&gt; (go-to: &quot;NadiaRaeWinter&quot;) ]
 
 (link: &quot;🪓 CUT HER FROM THE LINE-UP&quot;)[ (set: $NopeNames to $NopeNames + (a: &quot;Zaria Rae Sterling&quot;)) (go-to: &quot;NadiaRaeWinter&quot;) ]
 
@@ -1273,7 +1394,7 @@ Elegant. Also fully capable of shutting a room down with one look.
 
 (link: &quot;❄️ SHE COULD ACTUALLY PULL THIS OFF&quot;)[ (set: $LoveNames to $LoveNames + (a: &quot;Nadia Rae Winter&quot;)) (go-to: &quot;ZeliaRaeMorrow&quot;) ]
 
-(link: &quot;🤔 UNDECIDED. ASK AGAIN LATER.&quot;)[ (set: $MaybeNames to $MaybeNames + (a: &quot;Nadia Rae Winter&quot;)) (go-to: &quot;ZeliaRaeMorrow&quot;) ]
+(link: &quot;🤔 UNDECIDED. ASK AGAIN LATER.&quot;)[ (set: $MaybeNames to $MaybeNames + (a: &quot;Nadia Rae Winter&quot;)) &lt;span data-anim=&quot;stumble&quot; style=&quot;display:none&quot;&gt;&lt;/span&gt; (go-to: &quot;ZeliaRaeMorrow&quot;) ]
 
 (link: &quot;🥶 COLD. NEXT.&quot;)[ (set: $NopeNames to $NopeNames + (a: &quot;Nadia Rae Winter&quot;)) (go-to: &quot;ZeliaRaeMorrow&quot;) ]
 
@@ -1295,7 +1416,7 @@ Gut check:
 
 (link: &quot;⚡ OHHH… HOLD UP&quot;)[ (set: $LoveNames to $LoveNames + (a: &quot;Zelia Rae Morrow&quot;)) (go-to: &quot;VesperKristalWilde&quot;) ]
 
-(link: &quot;👀 KEEP HER AROUND&quot;)[ (set: $MaybeNames to $MaybeNames + (a: &quot;Zelia Rae Morrow&quot;)) (go-to: &quot;VesperKristalWilde&quot;) ]
+(link: &quot;👀 KEEP HER AROUND&quot;)[ (set: $MaybeNames to $MaybeNames + (a: &quot;Zelia Rae Morrow&quot;)) &lt;span data-anim=&quot;stumble&quot; style=&quot;display:none&quot;&gt;&lt;/span&gt; (go-to: &quot;VesperKristalWilde&quot;) ]
 
 (link: &quot;🪦 NOT DEADLY, JUST NOT HER&quot;)[ (set: $NopeNames to $NopeNames + (a: &quot;Zelia Rae Morrow&quot;)) (go-to: &quot;VesperKristalWilde&quot;) ]
 
@@ -1317,7 +1438,7 @@ Sounds like a woman who arrives fashionably late and never apologises for it.
 
 (link: &quot;🌆 OKAY THAT&#x27;S ACTUALLY KIND OF ICONIC&quot;)[ (set: $LoveNames to $LoveNames + (a: &quot;Vesper Kristal Wilde&quot;)) (go-to: &quot;KaiaRaeMorrow&quot;) ]
 
-(link: &quot;🧐 SUSPICIOUSLY GOOD. WATCHING CLOSELY.&quot;)[ (set: $MaybeNames to $MaybeNames + (a: &quot;Vesper Kristal Wilde&quot;)) (go-to: &quot;KaiaRaeMorrow&quot;) ]
+(link: &quot;🧐 SUSPICIOUSLY GOOD. WATCHING CLOSELY.&quot;)[ (set: $MaybeNames to $MaybeNames + (a: &quot;Vesper Kristal Wilde&quot;)) &lt;span data-anim=&quot;stumble&quot; style=&quot;display:none&quot;&gt;&lt;/span&gt; (go-to: &quot;KaiaRaeMorrow&quot;) ]
 
 (link: &quot;🌫️ FADE TO BLACK ON THIS ONE&quot;)[ (set: $NopeNames to $NopeNames + (a: &quot;Vesper Kristal Wilde&quot;)) (go-to: &quot;KaiaRaeMorrow&quot;) ]
 
@@ -1339,7 +1460,7 @@ Immediate reaction:
 
 (link: &quot;🔥 FUCK… SHE MIGHT ACTUALLY BE SOMETHING&quot;)[ (set: $LoveNames to $LoveNames + (a: &quot;Kaia Rae Morrow&quot;)) (go-to: &quot;TheaRaeOsmond&quot;) ]
 
-(link: &quot;👀 ALRIGHT KAIA, DON&#x27;T GET COMFORTABLE&quot;)[ (set: $MaybeNames to $MaybeNames + (a: &quot;Kaia Rae Morrow&quot;)) (go-to: &quot;TheaRaeOsmond&quot;) ]
+(link: &quot;👀 ALRIGHT KAIA, DON&#x27;T GET COMFORTABLE&quot;)[ (set: $MaybeNames to $MaybeNames + (a: &quot;Kaia Rae Morrow&quot;)) &lt;span data-anim=&quot;stumble&quot; style=&quot;display:none&quot;&gt;&lt;/span&gt; (go-to: &quot;TheaRaeOsmond&quot;) ]
 
 (link: &quot;🫠 I SEE IT. I JUST DON&#x27;T WANT IT.&quot;)[ (set: $NopeNames to $NopeNames + (a: &quot;Kaia Rae Morrow&quot;)) (go-to: &quot;TheaRaeOsmond&quot;) ]
 
@@ -1361,7 +1482,7 @@ Sounds respectable right up until you find out what she&#x27;s actually been doi
 
 (link: &quot;💡 OH THAT&#x27;S ANNOYINGLY GOOD&quot;)[ (set: $LoveNames to $LoveNames + (a: &quot;Thea Rae Osmond&quot;)) (go-to: &quot;JunoKristalHale&quot;) ]
 
-(link: &quot;🤨 SUSPICIOUS LEVELS OF FINE&quot;)[ (set: $MaybeNames to $MaybeNames + (a: &quot;Thea Rae Osmond&quot;)) (go-to: &quot;JunoKristalHale&quot;) ]
+(link: &quot;🤨 SUSPICIOUS LEVELS OF FINE&quot;)[ (set: $MaybeNames to $MaybeNames + (a: &quot;Thea Rae Osmond&quot;)) &lt;span data-anim=&quot;stumble&quot; style=&quot;display:none&quot;&gt;&lt;/span&gt; (go-to: &quot;JunoKristalHale&quot;) ]
 
 (link: &quot;🕯️ LIGHTS OUT ON THIS ONE&quot;)[ (set: $NopeNames to $NopeNames + (a: &quot;Thea Rae Osmond&quot;)) (go-to: &quot;JunoKristalHale&quot;) ]
 
@@ -1383,7 +1504,7 @@ The kind of name that ends arguments just by entering the room.
 
 (link: &quot;👑 SHE WOULD RULE, HONESTLY&quot;)[ (set: $LoveNames to $LoveNames + (a: &quot;Juno Kristal Hale&quot;)) (go-to: &quot;RomyMareeCalder&quot;) ]
 
-(link: &quot;🤷 JURY&#x27;S STILL OUT&quot;)[ (set: $MaybeNames to $MaybeNames + (a: &quot;Juno Kristal Hale&quot;)) (go-to: &quot;RomyMareeCalder&quot;) ]
+(link: &quot;🤷 JURY&#x27;S STILL OUT&quot;)[ (set: $MaybeNames to $MaybeNames + (a: &quot;Juno Kristal Hale&quot;)) &lt;span data-anim=&quot;stumble&quot; style=&quot;display:none&quot;&gt;&lt;/span&gt; (go-to: &quot;RomyMareeCalder&quot;) ]
 
 (link: &quot;⚰️ OVERTHROWN. NEXT.&quot;)[ (set: $NopeNames to $NopeNames + (a: &quot;Juno Kristal Hale&quot;)) (go-to: &quot;RomyMareeCalder&quot;) ]
 
@@ -1405,7 +1526,7 @@ Sounds soft. Is absolutely not soft.
 
 (link: &quot;🥹 OKAY WAIT I ACTUALLY LOVE THIS&quot;)[ (set: $LoveNames to $LoveNames + (a: &quot;Romy Maree Calder&quot;)) (go-to: &quot;CasualtyReport&quot;) ]
 
-(link: &quot;🧐 GROWING ON ME, SUSPICIOUSLY&quot;)[ (set: $MaybeNames to $MaybeNames + (a: &quot;Romy Maree Calder&quot;)) (go-to: &quot;CasualtyReport&quot;) ]
+(link: &quot;🧐 GROWING ON ME, SUSPICIOUSLY&quot;)[ (set: $MaybeNames to $MaybeNames + (a: &quot;Romy Maree Calder&quot;)) &lt;span data-anim=&quot;stumble&quot; style=&quot;display:none&quot;&gt;&lt;/span&gt; (go-to: &quot;CasualtyReport&quot;) ]
 
 (link: &quot;👋 THANKS, NEXT&quot;)[ (set: $NopeNames to $NopeNames + (a: &quot;Romy Maree Calder&quot;)) (go-to: &quot;CasualtyReport&quot;) ]
 
@@ -1490,6 +1611,7 @@ TWO NAMES ENTER. ONE MUM LEAVES.
 &lt;div class=&quot;card&quot;&gt;**(print: _second)**&lt;br&gt;&lt;span class=&quot;pron&quot;&gt;(print: _secondInfo&#x27;s pron)&lt;/span&gt;&lt;/div&gt;
 
 (link: &quot;👉 KEEP &quot; + _first)[
+&lt;span data-anim=&quot;dodge&quot; style=&quot;display:none&quot;&gt;&lt;/span&gt;
 (set: $NextRoundResults to $NextRoundResults + (a: _first))
 (if: $Bracket&#x27;s length &gt; 2)[(set: $Bracket to (subarray: $Bracket, 3, $Bracket&#x27;s length))](else:)[(set: $Bracket to (a:))]
 (if: $Bracket&#x27;s length is 1)[(set: $NextRoundResults to $NextRoundResults + (a: $Bracket&#x27;s 1st))(set: $Bracket to (a:))]
@@ -1497,6 +1619,7 @@ TWO NAMES ENTER. ONE MUM LEAVES.
 ]
 
 (link: &quot;👉 KEEP &quot; + _second)[
+&lt;span data-anim=&quot;dodge&quot; style=&quot;display:none&quot;&gt;&lt;/span&gt;
 (set: $NextRoundResults to $NextRoundResults + (a: _second))
 (if: $Bracket&#x27;s length &gt; 2)[(set: $Bracket to (subarray: $Bracket, 3, $Bracket&#x27;s length))](else:)[(set: $Bracket to (a:))]
 (if: $Bracket&#x27;s length is 1)[(set: $NextRoundResults to $NextRoundResults + (a: $Bracket&#x27;s 1st))(set: $Bracket to (a:))]
@@ -1529,6 +1652,7 @@ TWO NAMES ENTER. ONE MUM LEAVES.
 ]
 ]
 &lt;/div&gt;</tw-passagedata><tw-passagedata pid="44" name="NobodySurvived" tags="knockout" position="320,1220" size="100,100">&lt;div class=&quot;stage-knockout&quot;&gt;
+&lt;span data-anim=&quot;fail&quot; style=&quot;display:none&quot;&gt;&lt;/span&gt;
 # NOBODY SURVIVED
 
 Every single name got a Nope or a WTF. Impressive work.
@@ -1643,6 +1767,7 @@ Steal one. Change one. Mash two together. Or ignore the lot because apparently y
 
 [[BACK TO NAMING MUM-&gt;WildcardInvent]]
 &lt;/div&gt;</tw-passagedata><tw-passagedata pid="50" name="FinalThree" tags="finalvote" position="320,1380" size="100,100">&lt;div class=&quot;stage-finalvote&quot;&gt;
+&lt;span data-anim=&quot;celebrate&quot; style=&quot;display:none&quot;&gt;&lt;/span&gt;
 (if: $Finalists&#x27;s length is 1)[(set: $FinalHeadline to &quot;THE ONLY ONE LEFT STANDING&quot;)]
 (else-if: $Finalists&#x27;s length is 2)[(set: $FinalHeadline to &quot;THE FINAL TWO&quot;)]
 (else-if: $Finalists&#x27;s length is 3)[(set: $FinalHeadline to &quot;THE FINAL THREE&quot;)]
@@ -1722,6 +1847,7 @@ Optional. Roast, explanation, heartfelt essay, or &quot;dunno, it just suits you
 (go-to: &quot;Result&quot;)
 ]
 &lt;/div&gt;</tw-passagedata><tw-passagedata pid="55" name="Result" tags="result" position="100,1540" size="100,100">&lt;div class=&quot;stage-result&quot;&gt;
+&lt;span data-anim=&quot;win&quot; style=&quot;display:none&quot;&gt;&lt;/span&gt;
 (if: $ChildName is &quot;Connor&quot;)[(set: $ResultHeading to &quot;CONNOR&#x27;S FINAL RULING&quot;)]
 (else-if: $ChildName is &quot;Grace&quot;)[(set: $ResultHeading to &quot;GRACE&#x27;S VERDICT&quot;)]
 (else-if: $ChildName is &quot;Hunter&quot;)[(set: $ResultHeading to &quot;HUNTER HAS DECIDED&quot;)]

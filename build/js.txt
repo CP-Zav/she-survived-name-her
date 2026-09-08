@@ -158,7 +158,14 @@ window.copyResultText = function(btn){
     document.getElementById('hudStage').textContent=stage.name;
     document.getElementById('hudCount').textContent=stage.count;
     document.getElementById('hudFill').style.width=stage.progress+'%';
-    if(stage.name!==lastStage){showSplash(stage.splash);lastStage=stage.name;}
+    if(stage.name!==lastStage){
+      showSplash(stage.splash);
+      if(window.AnimController){
+        if(!lastStage){ window.AnimController.play('intro'); }
+        else if(stage.name==='VIBE CHECK'){ window.AnimController.play('idle'); }
+      }
+      lastStage=stage.name;
+    }
     addCaseCore(passage,stage);
     paceLongScene(passage);
     if(stage.progress===100) confetti();
@@ -177,4 +184,116 @@ window.copyResultText = function(btn){
 
   new MutationObserver(function(){window.requestAnimationFrame(enhance);}).observe(document.documentElement,{childList:true,subtree:true});
   if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',enhance); else enhance();
+})();
+
+/* ------------------------------------------------------------------ */
+/* Character animation controller                                     */
+/* Plays one of 8 short MP4 clips (assets/animations/*.mp4) at real   */
+/* gameplay beats. Passage authors (build/build.py) mark a beat by    */
+/* dropping <span data-anim="NAME" style="display:none"></span> into  */
+/* a passage's Harlowe source; this controller notices that marker    */
+/* land in the DOM (via MutationObserver, the same technique the HUD  */
+/* code above already relies on) and plays the matching clip. The     */
+/* intro/idle states are triggered directly from the stage-transition */
+/* logic above instead, since they are ambient/whole-phase states     */
+/* rather than single-beat reactions.                                 */
+/* ------------------------------------------------------------------ */
+(function(){
+  var CLIPS = {
+    intro: 'assets/animations/intro.mp4',
+    idle: 'assets/animations/idle.mp4',
+    dodge: 'assets/animations/dodge.mp4',
+    stumble: 'assets/animations/stumble.mp4',
+    shock: 'assets/animations/shock.mp4',
+    celebrate: 'assets/animations/celebrate.mp4',
+    fail: 'assets/animations/fail.mp4',
+    win: 'assets/animations/win.mp4'
+  };
+
+  var reduceMotion = false;
+  try{ reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches; }catch(e){}
+
+  var video = null;
+  var current = null;
+  var failed = {};
+
+  function ensureVideo(){
+    if(video) return video;
+    video = document.createElement('video');
+    video.id = 'charAnim';
+    video.muted = true;
+    video.playsInline = true;
+    video.setAttribute('playsinline','');
+    video.setAttribute('webkit-playsinline','');
+    video.style.cssText = 'position:fixed;right:max(10px,env(safe-area-inset-right));bottom:max(10px,env(safe-area-inset-bottom));width:min(34vw,150px);aspect-ratio:1/1;object-fit:cover;border-radius:16px;border:1px solid rgba(255,255,255,.2);box-shadow:0 10px 30px rgba(0,0,0,.45);pointer-events:none;z-index:60;opacity:0;transition:opacity .3s ease,transform .3s ease;transform:translateY(8px) scale(.96);background:#000;';
+    document.body.appendChild(video);
+    video.addEventListener('ended',function(){
+      if(current && current!=='idle'){ play('idle'); }
+    });
+    video.addEventListener('error',function(){
+      failed[current] = true;
+      hide();
+    });
+    return video;
+  }
+
+  function hide(){
+    if(video){ video.style.opacity='0'; video.style.transform='translateY(8px) scale(.96)'; }
+  }
+
+  function play(name, opts){
+    opts = opts || {};
+    if(!CLIPS[name]) return;
+    if(reduceMotion && name!=='win' && name!=='intro') return;
+    if(failed[name]) return;
+    if(current===name && !opts.restart) return;
+    var v = ensureVideo();
+    current = name;
+    var src = CLIPS[name];
+    if(v.getAttribute('data-clip')!==src){
+      v.setAttribute('data-clip',src);
+      v.src = src;
+    }else{
+      try{ v.currentTime = 0; }catch(e){}
+    }
+    v.loop = (name==='idle');
+    var p;
+    try{ p = v.play(); }catch(e){ p = null; }
+    if(p && p.then){
+      p.then(function(){ v.style.opacity='1'; v.style.transform='none'; }).catch(function(){ hide(); });
+    }else{
+      v.style.opacity='1'; v.style.transform='none';
+    }
+  }
+
+  window.AnimController = { play: play, stop: function(){ current=null; hide(); } };
+
+  function claim(node){
+    if(!node || node.nodeType!==1) return;
+    if(node.hasAttribute && node.hasAttribute('data-anim')){
+      play(node.getAttribute('data-anim'));
+      node.removeAttribute('data-anim');
+    }
+    if(node.querySelectorAll){
+      var found = node.querySelectorAll('[data-anim]');
+      for(var i=0;i<found.length;i++){
+        play(found[i].getAttribute('data-anim'));
+        found[i].removeAttribute('data-anim');
+      }
+    }
+  }
+
+  function bootAnim(){
+    var story = document.querySelector('tw-story') || document.body;
+    claim(story);
+    new MutationObserver(function(mutations){
+      for(var i=0;i<mutations.length;i++){
+        for(var j=0;j<mutations[i].addedNodes.length;j++){
+          claim(mutations[i].addedNodes[j]);
+        }
+      }
+    }).observe(story,{childList:true,subtree:true});
+  }
+
+  if(document.readyState==='loading'){ document.addEventListener('DOMContentLoaded',bootAnim); } else { bootAnim(); }
 })();
