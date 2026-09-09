@@ -284,26 +284,62 @@ tw-story{padding-top:62px;}
   88%{transform:translate(-50%,3px) rotate(.2deg);}
   100%{transform:translate(-50%,0) rotate(0);}
 }
-.tiny-mum{
-  position:absolute;z-index:3;left:50%;top:48%;width:54px;height:76px;transform:translateX(-50%);filter:drop-shadow(0 8px 6px rgba(0,0,0,.55));
-  animation:mumFlatten .28s ease-in 1.75s forwards,mumCrawl 2.1s cubic-bezier(.25,.7,.25,1) 2.2s forwards;
-}
-.mum-face{position:absolute;z-index:3;left:10px;top:4px;width:34px;height:31px;border-radius:48% 48% 45% 45%;background:#e9b38f;color:#16131a;font:800 11px/31px system-ui;text-align:center;font-style:normal;}
-.mum-hair{position:absolute;z-index:2;left:4px;top:-2px;width:46px;height:41px;border-radius:55% 45% 48% 52%;background:repeating-linear-gradient(105deg,#d5b45e 0 4px,#815d2c 5px 8px);transform:rotate(-8deg);}
-.mum-body{position:absolute;z-index:1;left:13px;top:31px;width:30px;height:33px;border-radius:12px 12px 5px 5px;background:linear-gradient(135deg,#ff2fb0,#8b5cf6);transform:rotate(4deg);}
-.mum-leg{position:absolute;left:12px;top:57px;width:42px;height:10px;border:7px solid #2fe6ff;border-left:0;border-bottom:0;border-radius:0 12px 0 0;transform:rotate(8deg);}
-.mum-flag{position:absolute;z-index:5;left:39px;top:23px;width:3px;height:43px;background:#eee;transform:rotate(14deg);opacity:0;animation:flagUp .6s ease-out 3.1s forwards,flagWave 1.1s ease-in-out 3.75s infinite alternate;transform-origin:bottom;}
-.mum-flag:after{content:"";position:absolute;left:3px;top:0;width:28px;height:18px;background:#fff;clip-path:polygon(0 0,100% 12%,78% 55%,100% 100%,0 88%);box-shadow:0 0 8px rgba(255,255,255,.6);}
-@keyframes mumFlatten{to{transform:translateX(-50%) scaleY(.16) scaleX(1.3);}}
-@keyframes mumCrawl{0%{transform:translateX(-50%) scaleY(.16) scaleX(1.3);}18%{transform:translate(-40%,4px) scaleY(.7) rotate(90deg);}100%{transform:translate(145px,68px) scale(.88) rotate(76deg);}}
-@keyframes flagUp{from{opacity:0;transform:rotate(14deg) scaleY(0);}to{opacity:1;transform:rotate(14deg) scaleY(1);}}
-@keyframes flagWave{to{transform:rotate(25deg);}}
 .now-name{position:absolute;z-index:6;left:50%;top:63%;width:100%;transform:translateX(-50%) scale(2.4) rotate(-4deg);opacity:0;color:#ff2fb0;font:1000 clamp(2rem,10vw,4.4rem)/1 system-ui,sans-serif;letter-spacing:.03em;text-shadow:0 0 18px #ff2fb0,0 0 40px #8b5cf6;animation:nameStamp .62s cubic-bezier(.18,.88,.25,1.2) 4.5s forwards;}
 .survival-stage>small{position:absolute;z-index:6;left:50%;top:80%;transform:translateX(-50%) rotate(-2deg) scale(1.8);width:max-content;max-width:90vw;padding:.65em 1em;border:1px solid #2fe6ff;border-radius:99px;color:#2fe6ff;font:800 clamp(.54rem,2.4vw,.75rem)/1 system-ui,sans-serif;letter-spacing:.14em;text-shadow:0 0 10px #2fe6ff;opacity:0;animation:fileStamp .55s ease-out 5.15s forwards;}
 @keyframes nameStamp{to{opacity:1;transform:translateX(-50%) scale(1) rotate(-2deg);}}
 #stageSplash.title-drop{animation-name:titleCurtain,impactShake;animation-duration:6.8s,.5s;animation-delay:0s,1.75s;animation-timing-function:ease,ease-out;}
 @keyframes impactShake{20%{transform:translate(0,5px);}40%{transform:translate(-5px,-3px);}60%{transform:translate(5px,2px);}80%{transform:translate(-2px,0);}100%{transform:none;}}
-@media(max-width:420px){.survival-stage{height:68vh;}.tiny-mum{top:46%;}.now-name{top:66%;}.survival-stage>small{top:82%;}.title-slab{top:30%;}}
+@media(max-width:420px){.survival-stage{height:68vh;}.now-name{top:66%;}.survival-stage>small{top:82%;}.title-slab{top:30%;}}
+
+/* Opening reel: full-bleed 8-beat "world falls apart, she survives" montage,
+   plays once before the title-slab crashes in. Replaces the old tiny
+   emoji-figure gag with the actual Grok character footage. */
+#openingReel{
+  position:fixed;inset:0;z-index:95;background:#030307;overflow:hidden;
+  opacity:0;transition:opacity .4s ease;
+}
+#openingReel.show{opacity:1;}
+#openingReel video{
+  position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:50% 22%;
+  opacity:0;transition:opacity .35s ease;
+}
+#openingReel video.on{opacity:1;}
+#openingReel:before{
+  content:"";position:absolute;inset:0;z-index:1;pointer-events:none;
+  background:
+    linear-gradient(180deg,rgba(3,3,7,.75) 0%,rgba(3,3,7,.15) 30%,rgba(3,3,7,.2) 60%,rgba(3,3,7,.88) 100%),
+    radial-gradient(circle at 15% 10%,rgba(255,47,176,.28),transparent 40%),
+    radial-gradient(circle at 85% 15%,rgba(47,230,255,.24),transparent 42%);
+}
+#openingReel:after{
+  content:"";position:absolute;inset:0;z-index:2;pointer-events:none;opacity:0;
+  background:repeating-linear-gradient(180deg,rgba(255,255,255,.06) 0 1px,transparent 1px 3px);
+  mix-blend-mode:overlay;
+}
+#openingReel.glitch:after{opacity:1;animation:reelGlitch .18s steps(2) infinite;}
+#openingReel.glitch video{animation:reelShake .18s steps(2) infinite;}
+@keyframes reelGlitch{50%{opacity:.35;}}
+@keyframes reelShake{0%{transform:translate(0,0);}25%{transform:translate(-3px,1px);}50%{transform:translate(2px,-2px);}75%{transform:translate(-1px,2px);}100%{transform:translate(0,0);}}
+#openingReel small{
+  position:absolute;z-index:3;left:50%;bottom:max(18px,env(safe-area-inset-bottom));transform:translateX(-50%);
+  padding:.55em .95em;border:1px solid rgba(255,255,255,.35);border-radius:99px;color:rgba(255,255,255,.85);
+  font:800 .62rem/1 system-ui,sans-serif;letter-spacing:.16em;text-transform:uppercase;background:rgba(0,0,0,.35);backdrop-filter:blur(4px);
+}
+@media(max-width:420px){#openingReel video{object-position:50% 18%;}}
+
+/* Reaction panel: small clip shown for a single gameplay beat (dodge, stumble,
+   shock, celebrate, fail, win, idle). Uses object-fit:contain in a taller,
+   padded card so a portrait clip is never crop-cut through the head/body -
+   the earlier square object-fit:cover box is what produced the stray
+   cropped-cutout look in the bottom-right corner. */
+#charAnim{
+  position:fixed;z-index:60;right:max(10px,env(safe-area-inset-right));bottom:max(10px,env(safe-area-inset-bottom));
+  width:min(30vw,128px);aspect-ratio:3/4;object-fit:contain;background:#08090d;
+  border-radius:16px;border:1px solid rgba(var(--accent-rgb,47,230,255),.55);
+  box-shadow:0 10px 30px rgba(0,0,0,.45),0 0 18px rgba(var(--accent-rgb,47,230,255),.2);
+  pointer-events:none;opacity:0;transition:opacity .3s ease,transform .3s ease;transform:translateY(8px) scale(.96);
+}
+@media(max-width:420px){#charAnim{width:min(26vw,104px);}}
 #scrollCue{
   position:fixed;z-index:75;left:50%;bottom:max(20px,env(safe-area-inset-bottom));display:flex;flex-direction:column;align-items:center;gap:3px;
   transform:translate(-50%,28px) scale(.8);opacity:0;pointer-events:none;border:0;background:transparent;color:#2fe6ff;text-shadow:0 0 14px #2fe6ff;
@@ -403,7 +439,7 @@ tw-story{padding-top:62px;}
     var splash = document.getElementById('stageSplash');
     var isTitle=label==='TITLE';
     splash.innerHTML=isTitle
-      ? '<div class="survival-stage"><div class="tiny-mum"><i class="mum-hair"></i><i class="mum-face">•‿•</i><i class="mum-body"></i><i class="mum-leg"></i><span class="mum-flag"><i></i></span></div><div class="title-slab">SHE SURVIVED!</div><b class="now-name">NOW NAME HER.</b><small>FAMILY RECLASSIFICATION UNIT // CASE 001</small></div>'
+      ? '<div class="survival-stage"><div class="title-slab">SHE SURVIVED!</div><b class="now-name">NOW NAME HER.</b><small>FAMILY RECLASSIFICATION UNIT // CASE 001</small></div>'
       : '<div class="round-title">'+label+'</div>';
     splash.className=isTitle?'show title-drop':'show round-drop';
     window.setTimeout(function(){
@@ -492,12 +528,14 @@ tw-story{padding-top:62px;}
     document.getElementById('hudCount').textContent=stage.count;
     document.getElementById('hudFill').style.width=stage.progress+'%';
     if(stage.name!==lastStage){
-      showSplash(stage.splash);
-      if(window.AnimController){
-        if(!lastStage){ window.AnimController.play('intro'); }
-        else if(stage.name==='VIBE CHECK'){ window.AnimController.play('idle'); }
-      }
+      var isFirstStage=!lastStage;
       lastStage=stage.name;
+      if(isFirstStage && window.AnimController && window.AnimController.runOpeningReel){
+        window.AnimController.runOpeningReel(function(){ showSplash(stage.splash); });
+      }else{
+        showSplash(stage.splash);
+        if(window.AnimController && stage.name==='VIBE CHECK'){ window.AnimController.play('idle'); }
+      }
     }
     addCaseCore(passage,stage);
     paceLongScene(passage);
@@ -543,6 +581,21 @@ tw-story{padding-top:62px;}
     win: 'assets/animations/win.mp4'
   };
 
+  /* The 8-beat opening reel: reuses the same 8 clips above (no new assets),
+     reordered into a "normal -> warning -> impact -> chaos -> burial ->
+     aftermath -> re-emergence -> survivor reveal" arc. Each beat gets a
+     short capped duration so the whole reel stays brisk on a phone. */
+  var REEL = [
+    {clip:'intro',     ms:1400, glitch:false},
+    {clip:'shock',     ms:900,  glitch:true},
+    {clip:'dodge',     ms:800,  glitch:true},
+    {clip:'stumble',   ms:900,  glitch:true},
+    {clip:'fail',      ms:1100, glitch:true},
+    {clip:'idle',      ms:1000, glitch:false},
+    {clip:'celebrate', ms:900,  glitch:false},
+    {clip:'win',       ms:1300, glitch:false}
+  ];
+
   var reduceMotion = false;
   try{ reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches; }catch(e){}
 
@@ -558,7 +611,6 @@ tw-story{padding-top:62px;}
     video.playsInline = true;
     video.setAttribute('playsinline','');
     video.setAttribute('webkit-playsinline','');
-    video.style.cssText = 'position:fixed;right:max(10px,env(safe-area-inset-right));bottom:max(10px,env(safe-area-inset-bottom));width:min(34vw,150px);aspect-ratio:1/1;object-fit:cover;border-radius:16px;border:1px solid rgba(255,255,255,.2);box-shadow:0 10px 30px rgba(0,0,0,.45);pointer-events:none;z-index:60;opacity:0;transition:opacity .3s ease,transform .3s ease;transform:translateY(8px) scale(.96);background:#000;';
     document.body.appendChild(video);
     video.addEventListener('ended',function(){
       if(current && current!=='idle'){ play('idle'); }
@@ -577,7 +629,7 @@ tw-story{padding-top:62px;}
   function play(name, opts){
     opts = opts || {};
     if(!CLIPS[name]) return;
-    if(reduceMotion && name!=='win' && name!=='intro') return;
+    if(reduceMotion) return;
     if(failed[name]) return;
     if(current===name && !opts.restart) return;
     var v = ensureVideo();
@@ -599,7 +651,68 @@ tw-story{padding-top:62px;}
     }
   }
 
-  window.AnimController = { play: play, stop: function(){ current=null; hide(); } };
+  /* Full-bleed opening reel: plays once, before the title-slab crash.
+     Falls straight through to onDone if reduced-motion is set, or if every
+     clip in the reel fails to load - the title-slab sequence underneath
+     already works standalone, so this never blocks the game from starting. */
+  function runOpeningReel(onDone){
+    var done = false;
+    function finish(){
+      if(done) return;
+      done = true;
+      if(reel){
+        reel.classList.remove('show');
+        var r = reel;
+        window.setTimeout(function(){ if(r && r.parentNode) r.parentNode.removeChild(r); }, 420);
+      }
+      onDone();
+    }
+    if(reduceMotion){ finish(); return; }
+
+    var reel = document.createElement('div');
+    reel.id = 'openingReel';
+    var vEl = document.createElement('video');
+    vEl.muted = true;
+    vEl.playsInline = true;
+    vEl.setAttribute('playsinline','');
+    vEl.setAttribute('webkit-playsinline','');
+    var tag = document.createElement('small');
+    tag.textContent = 'FAMILY RECLASSIFICATION UNIT // INCIDENT PLAYBACK';
+    reel.appendChild(vEl);
+    reel.appendChild(tag);
+    document.body.appendChild(reel);
+    reel.addEventListener('click', finish);
+    reel.addEventListener('touchstart', finish, {passive:true});
+    window.requestAnimationFrame(function(){ reel.classList.add('show'); });
+
+    var i = 0;
+    function nextBeat(){
+      if(done) return;
+      if(i >= REEL.length){ finish(); return; }
+      var beat = REEL[i++];
+      var src = CLIPS[beat.clip];
+      if(!src || failed[beat.clip]){ nextBeat(); return; }
+      reel.classList.toggle('glitch', !!beat.glitch);
+      vEl.classList.remove('on');
+      vEl.src = src;
+      var advanced = false;
+      var timer = window.setTimeout(advance, beat.ms);
+      function advance(){
+        if(advanced) return;
+        advanced = true;
+        window.clearTimeout(timer);
+        nextBeat();
+      }
+      vEl.onerror = function(){ failed[beat.clip] = true; advance(); };
+      var p;
+      try{ p = vEl.play(); }catch(e){ p = null; }
+      if(p && p.then){ p.then(function(){ vEl.classList.add('on'); }).catch(advance); }
+      else{ vEl.classList.add('on'); }
+    }
+    nextBeat();
+  }
+
+  window.AnimController = { play: play, runOpeningReel: runOpeningReel, stop: function(){ current=null; hide(); } };
 
   function claim(node){
     if(!node || node.nodeType!==1) return;

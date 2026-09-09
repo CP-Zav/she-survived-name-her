@@ -70,7 +70,7 @@ window.copyResultText = function(btn){
     var splash = document.getElementById('stageSplash');
     var isTitle=label==='TITLE';
     splash.innerHTML=isTitle
-      ? '<div class="survival-stage"><div class="tiny-mum"><i class="mum-hair"></i><i class="mum-face">•‿•</i><i class="mum-body"></i><i class="mum-leg"></i><span class="mum-flag"><i></i></span></div><div class="title-slab">SHE SURVIVED!</div><b class="now-name">NOW NAME HER.</b><small>FAMILY RECLASSIFICATION UNIT // CASE 001</small></div>'
+      ? '<div class="survival-stage"><div class="title-slab">SHE SURVIVED!</div><b class="now-name">NOW NAME HER.</b><small>FAMILY RECLASSIFICATION UNIT // CASE 001</small></div>'
       : '<div class="round-title">'+label+'</div>';
     splash.className=isTitle?'show title-drop':'show round-drop';
     window.setTimeout(function(){
@@ -159,12 +159,14 @@ window.copyResultText = function(btn){
     document.getElementById('hudCount').textContent=stage.count;
     document.getElementById('hudFill').style.width=stage.progress+'%';
     if(stage.name!==lastStage){
-      showSplash(stage.splash);
-      if(window.AnimController){
-        if(!lastStage){ window.AnimController.play('intro'); }
-        else if(stage.name==='VIBE CHECK'){ window.AnimController.play('idle'); }
-      }
+      var isFirstStage=!lastStage;
       lastStage=stage.name;
+      if(isFirstStage && window.AnimController && window.AnimController.runOpeningReel){
+        window.AnimController.runOpeningReel(function(){ showSplash(stage.splash); });
+      }else{
+        showSplash(stage.splash);
+        if(window.AnimController && stage.name==='VIBE CHECK'){ window.AnimController.play('idle'); }
+      }
     }
     addCaseCore(passage,stage);
     paceLongScene(passage);
@@ -210,6 +212,21 @@ window.copyResultText = function(btn){
     win: 'assets/animations/win.mp4'
   };
 
+  /* The 8-beat opening reel: reuses the same 8 clips above (no new assets),
+     reordered into a "normal -> warning -> impact -> chaos -> burial ->
+     aftermath -> re-emergence -> survivor reveal" arc. Each beat gets a
+     short capped duration so the whole reel stays brisk on a phone. */
+  var REEL = [
+    {clip:'intro',     ms:1400, glitch:false},
+    {clip:'shock',     ms:900,  glitch:true},
+    {clip:'dodge',     ms:800,  glitch:true},
+    {clip:'stumble',   ms:900,  glitch:true},
+    {clip:'fail',      ms:1100, glitch:true},
+    {clip:'idle',      ms:1000, glitch:false},
+    {clip:'celebrate', ms:900,  glitch:false},
+    {clip:'win',       ms:1300, glitch:false}
+  ];
+
   var reduceMotion = false;
   try{ reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches; }catch(e){}
 
@@ -225,7 +242,6 @@ window.copyResultText = function(btn){
     video.playsInline = true;
     video.setAttribute('playsinline','');
     video.setAttribute('webkit-playsinline','');
-    video.style.cssText = 'position:fixed;right:max(10px,env(safe-area-inset-right));bottom:max(10px,env(safe-area-inset-bottom));width:min(34vw,150px);aspect-ratio:1/1;object-fit:cover;border-radius:16px;border:1px solid rgba(255,255,255,.2);box-shadow:0 10px 30px rgba(0,0,0,.45);pointer-events:none;z-index:60;opacity:0;transition:opacity .3s ease,transform .3s ease;transform:translateY(8px) scale(.96);background:#000;';
     document.body.appendChild(video);
     video.addEventListener('ended',function(){
       if(current && current!=='idle'){ play('idle'); }
@@ -244,7 +260,7 @@ window.copyResultText = function(btn){
   function play(name, opts){
     opts = opts || {};
     if(!CLIPS[name]) return;
-    if(reduceMotion && name!=='win' && name!=='intro') return;
+    if(reduceMotion) return;
     if(failed[name]) return;
     if(current===name && !opts.restart) return;
     var v = ensureVideo();
@@ -266,7 +282,68 @@ window.copyResultText = function(btn){
     }
   }
 
-  window.AnimController = { play: play, stop: function(){ current=null; hide(); } };
+  /* Full-bleed opening reel: plays once, before the title-slab crash.
+     Falls straight through to onDone if reduced-motion is set, or if every
+     clip in the reel fails to load - the title-slab sequence underneath
+     already works standalone, so this never blocks the game from starting. */
+  function runOpeningReel(onDone){
+    var done = false;
+    function finish(){
+      if(done) return;
+      done = true;
+      if(reel){
+        reel.classList.remove('show');
+        var r = reel;
+        window.setTimeout(function(){ if(r && r.parentNode) r.parentNode.removeChild(r); }, 420);
+      }
+      onDone();
+    }
+    if(reduceMotion){ finish(); return; }
+
+    var reel = document.createElement('div');
+    reel.id = 'openingReel';
+    var vEl = document.createElement('video');
+    vEl.muted = true;
+    vEl.playsInline = true;
+    vEl.setAttribute('playsinline','');
+    vEl.setAttribute('webkit-playsinline','');
+    var tag = document.createElement('small');
+    tag.textContent = 'FAMILY RECLASSIFICATION UNIT // INCIDENT PLAYBACK';
+    reel.appendChild(vEl);
+    reel.appendChild(tag);
+    document.body.appendChild(reel);
+    reel.addEventListener('click', finish);
+    reel.addEventListener('touchstart', finish, {passive:true});
+    window.requestAnimationFrame(function(){ reel.classList.add('show'); });
+
+    var i = 0;
+    function nextBeat(){
+      if(done) return;
+      if(i >= REEL.length){ finish(); return; }
+      var beat = REEL[i++];
+      var src = CLIPS[beat.clip];
+      if(!src || failed[beat.clip]){ nextBeat(); return; }
+      reel.classList.toggle('glitch', !!beat.glitch);
+      vEl.classList.remove('on');
+      vEl.src = src;
+      var advanced = false;
+      var timer = window.setTimeout(advance, beat.ms);
+      function advance(){
+        if(advanced) return;
+        advanced = true;
+        window.clearTimeout(timer);
+        nextBeat();
+      }
+      vEl.onerror = function(){ failed[beat.clip] = true; advance(); };
+      var p;
+      try{ p = vEl.play(); }catch(e){ p = null; }
+      if(p && p.then){ p.then(function(){ vEl.classList.add('on'); }).catch(advance); }
+      else{ vEl.classList.add('on'); }
+    }
+    nextBeat();
+  }
+
+  window.AnimController = { play: play, runOpeningReel: runOpeningReel, stop: function(){ current=null; hide(); } };
 
   function claim(node){
     if(!node || node.nodeType!==1) return;
